@@ -201,7 +201,7 @@ def calc_payment_to_yaml(folder_str: str):
 #                      总计价格
 # ============================================================
 
-def get_fee_from_yaml(folder_str: str):
+def get_info_from_yaml(folder_str: str):
     folder = Path(folder_str)
     meta_yaml = folder / "meta.yaml"
     if not meta_yaml.exists():
@@ -209,11 +209,13 @@ def get_fee_from_yaml(folder_str: str):
         return
 
     meta:dict = yaml.safe_load(meta_yaml.read_text(encoding="utf-8"))
-    # print(meta)
-    fee = meta["payment"].get("total_fee")
-    folder_str = str(folder.name)
 
-    return folder_str, fee
+    folder_name = folder.name
+    fee = meta["payment"].get("total_fee")
+    segments = meta["payment"].get("total_segments")
+    seconds = meta["payment"].get("total_seconds")
+
+    return folder_name, fee, segments, seconds
 
 
 # ============================================================
@@ -311,16 +313,43 @@ def process_multi_dataset(root_str: str):
 
 
 def generate_all_fee_yaml(root_str: str):
+    root = Path(root_str)
     sub_folders: list[Path] = list_subfolders(root_str)
 
-    all_fee_conut = 0
+    result_list = []
+    total_payment = 0.0
 
     for folder in sub_folders:
-        meta_yaml_str, fee = get_fee_from_yaml(str(folder))
-        print(meta_yaml_str, fee)
-        all_fee_conut += fee 
-    
-    print(f"[所有] {all_fee_conut}")
+        result  = get_info_from_yaml(str(folder))
+        assert result is not None
+        
+        folder_name, fee, segments, seconds = result
+
+        result_list.append({
+            "name": folder_name,
+            "fee": fee,
+            "segments": segments,
+            "seconds": seconds,
+        })
+
+        total_payment += fee
+
+    # 生成到根目录下
+    out_yaml = root / "report.yaml"
+
+    data = {
+        "root_dir": root.name,
+        "total_payment": round(total_payment, 2),
+        "datasets": result_list,
+    }
+
+    out_yaml.write_text(
+        yaml.safe_dump(data, allow_unicode=True, sort_keys=False),
+        encoding="utf-8"
+    )
+
+    print(f"[汇总] 已生成: {out_yaml}")
+    print(f"[总计] {total_payment} CNY")
 
 # ============================================================
 #                       主入口
