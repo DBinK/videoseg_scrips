@@ -42,7 +42,7 @@ def process_multi_dataset(root_str: str):
         print(f"[完成] {folder}")
 
 
-def generate_all_fee_yaml(root_str: str):
+def generate_report_yaml(root_str: str):
     """
     收集指定根目录下所有数据集的费用信息并生成总报告
     
@@ -58,6 +58,7 @@ def generate_all_fee_yaml(root_str: str):
 
     result_list = []
     total_payment = 0.0
+    total_clips   = 0
 
     for folder in sub_folders:
         info = get_info_from_yaml(str(folder))
@@ -74,12 +75,17 @@ def generate_all_fee_yaml(root_str: str):
         })
 
         total_payment += fee
+        total_clips   += segments
 
     out_yaml = root / "report.yaml"
+    total_datasets = len(sub_folders)
+    total_payment = round(total_payment, 2)
 
     data = {
-        "root_dir": root.name,
-        "total_payment": round(total_payment, 2),
+        "root_dir": str(root),
+        "total_datasets": total_datasets,
+        "total_clips": total_clips,
+        "total_payment": total_payment,
         "datasets": result_list,
     }
 
@@ -88,8 +94,11 @@ def generate_all_fee_yaml(root_str: str):
         encoding="utf-8"
     )
 
-    print(f"[汇总] 已生成: {out_yaml}")
+    print("\n所有数据处理完毕")
+    print(f"[总计] {total_datasets} 个视频文件")
+    print(f"[总计] {total_clips} 个片段")
     print(f"[总计] {total_payment} CNY")
+    print(f"[汇总] 已生成报告: {out_yaml}")
 
 
 if __name__ == "__main__":
@@ -100,5 +109,5 @@ if __name__ == "__main__":
     process_multi_dataset(root_dir)
 
     # 生成总报告
-    generate_all_fee_yaml(root_dir)
+    generate_report_yaml(root_dir)
 
