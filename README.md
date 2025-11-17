@@ -63,7 +63,7 @@ python main.py
 
 如需处理其他目录，请修改 [main.py](main.py) 中的调用参数。
 
-```
+```python
 if __name__ == "__main__":
 
     root_dir = "./dataset/ziji"  # 数据集目录
