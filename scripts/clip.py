@@ -77,10 +77,8 @@ def get_dataset_files(folder: Path):
 
 
 def generate_metadata(folder_str: str):
-    """在数据目录下自动生成 metadata.yaml，如果已存在则跳过。"""
     folder = Path(folder_str)
 
-    # 查找 CSV
     csv_files = list(folder.glob("*.csv"))
     if not csv_files:
         print(f"[错误] 未找到 CSV：{folder}")
@@ -88,11 +86,11 @@ def generate_metadata(folder_str: str):
 
     csv_file = csv_files[0]
     base_name = csv_file.stem
-    meta_path = folder / "metadata.yaml"
+    meta_path = folder / "meta.yaml"
 
     # 已存在就跳过
     if meta_path.exists():
-        print(f"[跳过] metadata 已存在: {meta_path}")
+        print(f"[跳过] meta.yaml 已存在: {meta_path}")
         return
 
     # 计算总时长
@@ -102,29 +100,30 @@ def generate_metadata(folder_str: str):
         for row in reader:
             start = int(row["Start_Min"]) * 60 + int(row["Start_Sec"])
             end = int(row["End_Min"]) * 60 + int(row["End_Sec"])
-            used = end - start
-            total_seconds += used
+            total_seconds += (end - start)
 
-    # metadata 结构
+    # 按你需要的顺序写 dict（Python 3.7+ 会保持插入顺序）
     meta = {
         "dataset_name": base_name,
-        "description": "",     # 供你填写描述
-        "annotator": "",       # 可空
+        "annotator": "",
+        "description": "",
         "create_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 
-        "total_seconds": total_seconds,
-
         "payment": {
-            "count_by_range": {},         # 计费后填
-            "total_segments": 0,          # 计费后填
-            "total_fee": 0,               # 计费后填
+            "count_by_range": {},      # 计费后填
+            "total_seconds": total_seconds,
+            "total_segments": 0,
+            "total_fee": 0,
         }
     }
 
-    # 写入文件
-    meta_path.write_text(yaml.safe_dump(meta, allow_unicode=True), encoding="utf-8")
+    # ⭐⭐ 必须 sort_keys=False
+    meta_path.write_text(
+        yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+        encoding="utf-8"
+    )
 
-    print(f"[META] 已生成 metadata: {meta_path}")
+    print(f"[META] 已生成 meta.yaml: {meta_path}")
     print(f"[META] 采集有效总时长: {total_seconds} 秒")
 
 
@@ -140,7 +139,7 @@ def find_price_and_label(seconds: int, rules: list[dict]):
 
 
 
-def calc_payment(folder_str: str):
+def calc_payment_to_yaml(folder_str: str):
     folder = Path(folder_str)
     print(f"\n[计价] {folder}")
 
@@ -150,9 +149,9 @@ def calc_payment(folder_str: str):
 
     csv_file, _, base_name = result
 
-    meta_yaml = folder / "metadata.yaml"
+    meta_yaml = folder / "meta.yaml"
     if not meta_yaml.exists():
-        print("[警告] 未找到 metadata.yaml")
+        print("[警告] 未找到 meta.yaml")
         return
 
     meta = yaml.safe_load(meta_yaml.read_text(encoding="utf-8"))
@@ -185,15 +184,36 @@ def calc_payment(folder_str: str):
             )
         total_fee += price
 
-    # 写回 metadata
+    # 写回 meta.yaml（保持原字段顺序）
     meta["payment"]["count_by_range"] = count_by_range
     meta["payment"]["total_segments"] = count
     meta["payment"]["total_fee"] = round(total_fee, 2)
 
-    meta_yaml.write_text(yaml.safe_dump(meta, allow_unicode=True), encoding="utf-8")
+    meta_yaml.write_text(
+        yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+        encoding="utf-8"
+    )
 
     print(f"[PAY] updated {meta_yaml.name}: {count} segments, total fee {total_fee} RMB")
 
+
+# ============================================================
+#                      总计价格
+# ============================================================
+
+def get_fee_from_yaml(folder_str: str):
+    folder = Path(folder_str)
+    meta_yaml = folder / "meta.yaml"
+    if not meta_yaml.exists():
+        print("[警告] 未找到 meta.yaml")
+        return
+
+    meta:dict = yaml.safe_load(meta_yaml.read_text(encoding="utf-8"))
+    # print(meta)
+    fee = meta["payment"].get("total_fee")
+    folder_str = str(folder.name)
+
+    return folder_str, fee
 
 
 # ============================================================
@@ -266,34 +286,41 @@ def clip_video_ffmpeg(folder_str: str):
 
 
 # ============================================================
-#                  单个数据集处理
-# ============================================================
-
-def process_single_dataset(folder_str: str):
-    print(f"\n[开始处理] {folder_str}")
-
-    generate_srt(folder_str)
-    # clip_video_ffmpeg(folder_str)
-    generate_metadata(folder_str)
-    calc_payment(folder_str)
-
-    print(f"[完成] {folder_str}")
-
-
-
-# ============================================================
 #                 批量处理 dataset 根目录
 # ============================================================
-
-def process_multi_dataset(root_str: str):
+def list_subfolders(root_str: str) -> list[Path]:
+    """返回 root 下的所有一级子目录，并打印数量"""
     root = Path(root_str)
     sub_folders = [p for p in root.iterdir() if p.is_dir()]
 
     print(f"[发现] {len(sub_folders)} 个子目录")
+    return sub_folders
+
+
+def process_multi_dataset(root_str: str):
+    sub_folders = list_subfolders(root_str)
     for folder in sub_folders:
-        process_single_dataset(str(folder))
+        print(f"\n[开始处理] {str(folder)}")
+
+        generate_srt(str(folder))
+        # clip_video_ffmpeg(str(folder))
+        generate_metadata(str(folder))
+        calc_payment_to_yaml(str(folder))
+
+        print(f"[完成] {str(folder)}")
 
 
+def generate_all_fee_yaml(root_str: str):
+    sub_folders: list[Path] = list_subfolders(root_str)
+
+    all_fee_conut = 0
+
+    for folder in sub_folders:
+        meta_yaml_str, fee = get_fee_from_yaml(str(folder))
+        print(meta_yaml_str, fee)
+        all_fee_conut += fee 
+    
+    print(f"[所有] {all_fee_conut}")
 
 # ============================================================
 #                       主入口
@@ -301,4 +328,4 @@ def process_multi_dataset(root_str: str):
 
 if __name__ == "__main__":
     # process_multi_dataset("./dataset/ziji")
-    process_single_dataset("./dataset/ziji/MJ1_205")
+    generate_all_fee_yaml("./dataset/ziji")
