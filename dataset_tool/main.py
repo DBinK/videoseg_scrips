@@ -10,20 +10,49 @@ import yaml
 
 
 def process_multi_dataset(root_str: str):
+    """
+    处理指定根目录下的所有数据集子目录
+    
+    对每个子目录执行以下操作：
+    1. 生成字幕文件(.srt)
+    2. 生成或更新元数据文件(meta.yaml)
+    3. 根据剪辑片段计算费用并更新元数据
+    
+    Args:
+        root_str (str): 包含多个数据集的根目录路径
+    """
+
     sub_folders = list_subfolders(root_str)
 
     for folder in sub_folders:
         print(f"\n[开始处理] {folder}")
 
+        # 生成字幕
         generate_srt(str(folder))
+
+        # 裁剪视频
         # clip_video_ffmpeg(str(folder))
+
+        # 生成元数据
         generate_metadata(str(folder))
+
+        # 计算费用写入元数据
         calc_payment_to_yaml(str(folder))
 
         print(f"[完成] {folder}")
 
 
 def generate_all_fee_yaml(root_str: str):
+    """
+    收集指定根目录下所有数据集的费用信息并生成总报告
+    
+    遍历所有子目录，从各自的meta.yaml文件中提取费用信息，
+    汇总后生成一个总的报告文件(report.yaml)，包含各数据集的费用详情和总费用。
+    
+    Args:
+        root_str (str): 包含多个数据集的根目录路径
+    """
+    
     root = Path(root_str)
     sub_folders = list_subfolders(root_str)
 
