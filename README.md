@@ -62,4 +62,16 @@ python main.py
 默认情况下，程序会处理 `./dataset/ziji` 目录下的数据集。
 
 如需处理其他目录，请修改 [main.py](main.py) 中的调用参数。
+
+```
+if __name__ == "__main__":
+
+    root_dir = "./dataset/ziji"  # 数据集目录
+
+    # 处理多个数据
+    process_multi_dataset(root_dir)
+
+    # 生成总报告
+    generate_all_fee_yaml(root_dir)
+
 ```

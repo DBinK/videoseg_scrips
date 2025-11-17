@@ -93,6 +93,12 @@ def generate_all_fee_yaml(root_str: str):
 
 
 if __name__ == "__main__":
-    # 手动测试
-    process_multi_dataset("./dataset/ziji")
-    generate_all_fee_yaml("./dataset/ziji")
+
+    root_dir = "./dataset/ziji"   # 数据集目录
+
+    # 处理多个数据
+    process_multi_dataset(root_dir)
+
+    # 生成总报告
+    generate_all_fee_yaml(root_dir)
+
