@@ -1,22 +1,6 @@
 # 视频数据集处理工具
 
-## 快速上手
-
-### 安装依赖
-
-在开始使用之前，请确保安装了所需的依赖项：
-
-```bash
-pip install rich pyyaml
-```
-
-或者如果你使用 uv:
-
-```bash
-uv sync
-```
-
-### 项目结构
+## 项目结构
 
 ```
 dataset_tool/
@@ -26,6 +10,8 @@ dataset_tool/
 ├── payment.py       # 费用计算
 └── utils.py         # 通用工具函数
 ```
+
+## 快速上手
 
 ### 准备数据集
 
@@ -49,24 +35,21 @@ Index,Start_Min,Start_Sec,End_Min,End_Sec
 2,0,10,0,15
 ```
 
-### 使用方法
 
-#### 直接运行主程序
+### 指定数据集目录
 
+默认情况下，程序会处理项目根目录下 `dataset/ziji` 目录的数据集。
 
-```bash
-cd dataset_tool
-python main.py
-```
-
-默认情况下，程序会处理 `./dataset/ziji` 目录下的数据集。
-
-如需处理其他目录，请修改 [main.py](main.py) 中的调用参数。
+处理自己的数据，请修改 [main.py](main.py) 中的调用参数。
 
 ```python
+# main.py
+
+# ... main.py 中的代码
+
 if __name__ == "__main__":
 
-    root_dir = "./dataset/ziji"  # 数据集目录
+    root_dir = "dataset/ziji"  # 数据集目录
 
     # 处理多个数据
     process_multi_dataset(root_dir)
@@ -75,3 +58,42 @@ if __name__ == "__main__":
     generate_all_fee_yaml(root_dir)
 
 ```
+
+
+### 使用 uv 配置环境 (推荐)
+
+安装 uv:
+
+如果你是 Windows 用户，请使用 PowerShell 运行以下命令：
+```shell 
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -c "irm https://gitee.com/wangnov/uv-custom/releases/latest/download/setup_hooks.ps1 | iex"
+```
+
+如果是 macOS 或 Linux 用户，请使用以下命令：
+```shell
+# macOS / Linux
+curl -LsSf https://gitee.com/wangnov/uv-custom/releases/latest/download/setup_hooks.sh | sh
+```
+
+安装完后, 可以直接使用 uv 启动项目, 它会自动配置 Python 环境并启动项目
+
+```shell
+uv run dataset_tool/main.py
+```
+
+
+### 使用 pip 手动配置环境 (传统方法, 要自己装 Python 环境, 比较麻烦)
+
+先确保电脑已经有 Python 环境, 网上有很多教程, 此处不展开说明如何安装 Python 环境
+
+然后使用 pip 安装所需的依赖项：
+```shell
+pip install rich pyyaml
+```
+
+然后运行主程序：
+```shell
+python dataset_tool/main.py
+```
+
