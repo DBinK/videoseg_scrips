@@ -73,9 +73,10 @@ def generate_srt(folder_str: str):
         t_end = format_srt_time(info["end_min"], info["end_sec"])
 
         content = (
-            f"index={idx} "
+            f"index={idx}  "
             f"{info['start_min']:02d}:{info['start_sec']:02d} - "
-            f"{info['end_min']:02d}:{info['end_sec']:02d}"
+            f"{info['end_min']:02d}:{info['end_sec']:02d}  "
+            f"{info['end_time'] - info['start_time']} sec"
         )
 
         block = f"{idx}\n{t_start} --> {t_end}\n{content}\n"
