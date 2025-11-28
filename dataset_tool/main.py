@@ -61,6 +61,7 @@ def generate_report_yaml(root_str: str):
     result_list = []
     total_payment = 0.0
     total_clips   = 0
+    total_seconds = 0.0
 
     for folder in sub_folders:
         info = get_info_from_yaml(str(folder))
@@ -78,6 +79,7 @@ def generate_report_yaml(root_str: str):
 
         total_payment += fee
         total_clips   += segments
+        total_seconds += seconds
 
     out_yaml = root / "report.yaml"
     total_datasets = len(sub_folders)
@@ -87,6 +89,7 @@ def generate_report_yaml(root_str: str):
         "root_dir": root.as_posix(),
         "total_datasets": total_datasets,
         "total_clips": total_clips,
+        "total_seconds": total_seconds,
         "total_payment": total_payment,
         "datasets": result_list,
     }
@@ -117,6 +120,7 @@ def sum_reports(root_list: list[str]):
 
     total_report_payment = 0.0
     total_report_clips   = 0
+    total_report_seconds = 0.0
     total_report_datasets = 0
 
     for root_str in root_list:
@@ -127,6 +131,7 @@ def sum_reports(root_list: list[str]):
 
         total_report_payment += data["total_payment"]
         total_report_clips   += data["total_clips"]
+        total_report_seconds += data["total_seconds"]
         total_report_datasets += data["total_datasets"]
 
         all_report.append(data)
@@ -136,6 +141,7 @@ def sum_reports(root_list: list[str]):
         "root_dir": yaml_path.as_posix(),
         "total_report_datasets": total_report_datasets,
         "total_report_clips": total_report_clips,
+        "total_report_seconds": total_report_seconds,
         "total_report_payment": total_report_payment,
         "all_report": all_report,
     }
@@ -161,6 +167,7 @@ if __name__ == "__main__":
         "./dataset/ziji6",
         "./dataset/ziji7",
         "./dataset/ziji8",
+        "./dataset/ziji9",
     ]
 
     # 处理每个数据集

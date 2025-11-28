@@ -81,12 +81,14 @@ if __name__ == "__main__":
 安装 uv:
 
 如果你是 Windows 用户，请使用 PowerShell / CMD 运行以下命令：
+
 ```shell 
 # Windows
 powershell -ExecutionPolicy Bypass -c "irm https://gitee.com/wangnov/uv-custom/releases/latest/download/setup_hooks.ps1 | iex"
 ```
 
 如果是 macOS 或 Linux 用户，请使用以下命令：
+
 ```shell
 # macOS / Linux
 curl -LsSf https://gitee.com/wangnov/uv-custom/releases/latest/download/setup_hooks.sh | sh
